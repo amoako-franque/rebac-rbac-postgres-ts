@@ -16,17 +16,24 @@ import { swaggerSpec } from "./config/swagger"
 
 const app = express()
 
+// Disable Express default x-powered-by header
+app.disable("x-powered-by")
+
 // Request ID middleware (must be first)
 app.use(requestIdMiddleware)
 
 // Security middleware
 app.use(
 	helmet({
-		hidePoweredBy: false,
+		hidePoweredBy: false, // Allow custom x-powered-by header
 	})
 )
 
-app.set("x-powered-by", "django")
+// Set custom x-powered-by header via middleware
+app.use((_req: Request, res: Response, next: NextFunction) => {
+	res.setHeader("x-powered-by", "django")
+	next()
+})
 
 // CORS configuration
 app.use(
