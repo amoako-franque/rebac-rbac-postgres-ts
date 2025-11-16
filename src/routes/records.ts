@@ -17,6 +17,65 @@ const validateRecordId = [
 		.toInt(),
 ]
 
+/**
+ * @swagger
+ * /records/rbac/{id}:
+ *   get:
+ *     summary: Get patient record using RBAC
+ *     description: Retrieve a patient record using Role-Based Access Control. Requires 'record:read' permission.
+ *     tags: [Records]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Patient record ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Record retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Record fetched successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/PatientRecord'
+ *       400:
+ *         description: Invalid record ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - Insufficient permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 router.get(
 	"/rbac/:id",
 	requireAuth,
@@ -46,9 +105,63 @@ router.get(
 )
 
 /**
- * Get patient record using ReBAC (Relationship-Based Access Control)
- * GET /records/rebac/:id
- * Requires: assigned_to relationship with record owner
+ * @swagger
+ * /records/rebac/{id}:
+ *   get:
+ *     summary: Get patient record using ReBAC
+ *     description: Retrieve a patient record using Relationship-Based Access Control. Requires 'assigned_to' relationship with record owner.
+ *     tags: [Records]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Patient record ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Record retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Record fetched successfully
+ *                 data:
+ *                   $ref: '#/components/schemas/PatientRecord'
+ *       400:
+ *         description: Invalid record ID
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized - Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Forbidden - No relationship found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: Record not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get(
 	"/rebac/:id",

@@ -16,20 +16,18 @@ import {
  * @returns Express middleware function
  */
 export function rebacResource(relationType: string) {
-	return async (req: AuthRequest, res: Response, next: NextFunction) => {
+	return async (req: AuthRequest, _res: Response, next: NextFunction) => {
 		try {
 			const user = req.user
 			if (!user) {
 				throw new UnauthorizedError("User not authenticated")
 			}
 
-			// Validate record ID
 			const id = parseInt(req.params.id, 10)
 			if (!id || isNaN(id) || id < 1) {
 				throw new BadRequestError("Invalid or missing record ID")
 			}
 
-			// Fetch the record
 			const record = await prisma.patientRecord.findUnique({
 				where: { id },
 				select: {
@@ -42,7 +40,6 @@ export function rebacResource(relationType: string) {
 				throw new NotFoundError(`Record with ID ${id} not found`)
 			}
 
-			// Check if user is the owner (always allow)
 			if (record.ownerId === user.id) {
 				logger.debug(
 					`ReBAC check passed: User ${user.id} is the owner of record ${id}`
@@ -50,7 +47,6 @@ export function rebacResource(relationType: string) {
 				return next()
 			}
 
-			// Check for required relationship
 			const relationship = await prisma.relationship.findUnique({
 				where: {
 					subjectId_objectId_type: {

@@ -11,6 +11,8 @@ import { AppError } from "./utils/errors"
 import { prisma } from "./prisma"
 import { requestIdMiddleware, RequestWithId } from "./middleware/requestId"
 import { HEADERS, API_VERSION, HTTP_STATUS } from "./constants"
+import swaggerUi from "swagger-ui-express"
+import { swaggerSpec } from "./config/swagger"
 
 const app = express()
 
@@ -83,6 +85,27 @@ if (config.nodeEnv !== "test") {
 	})
 }
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Health check endpoint
+ *     description: Check API and database connectivity status
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: API is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthCheck'
+ *       503:
+ *         description: API is unhealthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthCheck'
+ */
 app.get("/", async (_req: Request, res: Response) => {
 	try {
 		await prisma.$queryRaw`SELECT 1`
@@ -125,6 +148,15 @@ app.get("/", async (_req: Request, res: Response) => {
 			},
 		})
 	}
+})
+
+// Swagger UI documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+
+// Swagger JSON endpoint
+app.get("/api-docs.json", (_req: Request, res: Response) => {
+	res.setHeader("Content-Type", "application/json")
+	res.send(swaggerSpec)
 })
 
 // API routes with versioning
@@ -230,9 +262,10 @@ const server = app.listen(PORT, () => {
 	logger.info("=".repeat(60))
 	logger.info(`📍 Environment: ${config.nodeEnv.toUpperCase()}`)
 	logger.info(`🌐 Server URL: http://localhost:${PORT}`)
-	logger.info(`> Health Check: http://localhost:${PORT}/`)
-	logger.info(`> Auth Endpoints: http://localhost:${PORT}/auth`)
-	logger.info(`> Records Endpoints: http://localhost:${PORT}/records`)
+	logger.info(`📊 Health Check: http://localhost:${PORT}/`)
+	logger.info(`📚 API Documentation: http://localhost:${PORT}/api-docs`)
+	logger.info(` Auth Endpoints: http://localhost:${PORT}/auth`)
+	logger.info(`📝 Records Endpoints: http://localhost:${PORT}/records`)
 	logger.info("=".repeat(60))
 })
 

@@ -48,6 +48,7 @@ A production-ready REST API demonstrating Role-Based Access Control (RBAC) and R
 - **Health Check**: Database connectivity monitoring with detailed status
 - **Graceful Shutdown**: Proper cleanup on application termination
 - **Request Logging**: Detailed request/response logging with IP and user agent tracking
+- **API Documentation**: Interactive Swagger/OpenAPI documentation with try-it-out functionality
 
 ## Architecture
 
@@ -350,6 +351,20 @@ npx prisma validate
 
 ## API Documentation
 
+### Interactive API Documentation (Swagger)
+
+The API includes interactive Swagger/OpenAPI documentation:
+
+- **Swagger UI**: http://localhost:4090/api-docs
+- **OpenAPI JSON**: http://localhost:4090/api-docs.json
+
+The Swagger UI provides:
+- Interactive API explorer
+- Try-it-out functionality
+- Request/response examples
+- Authentication testing
+- Schema definitions
+
 ### Base URL
 
 ```
@@ -364,6 +379,13 @@ All protected endpoints require a JWT token in the Authorization header:
 ```
 Authorization: Bearer <token>
 ```
+
+To test authenticated endpoints in Swagger UI:
+1. Go to `/api-docs`
+2. Click "Authorize" button
+3. Enter your JWT token (obtained from `/auth/login`)
+4. Click "Authorize"
+5. All protected endpoints will now use this token
 
 ### Endpoints
 
