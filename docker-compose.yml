@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: rebac-rbac-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rebac_rbac_example
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rebac-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rebac-rbac-app
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/rebac_rbac_db?schema=public
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_here_change_this_in_production}
+      PORT: ${PORT:-4090}
+      NODE_ENV: ${NODE_ENV:-development}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "${PORT:-4090}:4090"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./prisma:/app/prisma
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        npx prisma migrate deploy &&
+        echo 'Migrations completed' &&
+        node dist/index.js
+      "
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4090/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    networks:
+      - rebac-network
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  rebac-network:
+    driver: bridge

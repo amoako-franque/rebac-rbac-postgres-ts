@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Permission {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String?
+  roles       RolePermission[]
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  permissions RolePermission[]
+  users       UserRole[]
+}
+
+model RolePermission {
+  roleId       Int
+  permissionId Int
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  @@id([roleId, permissionId])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  roles     UserRole[]
+  records   PatientRecord[]
+  relationshipsSubject Relationship[] @relation("subjectRel")
+  relationshipsObject  Relationship[] @relation("objectRel")
+
+  @@index([email])
+}
+
+model UserRole {
+  userId Int
+  roleId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  @@id([userId, roleId])
+}
+
+model PatientRecord {
+  id          Int   @id @default(autoincrement())
+  patientName String
+  data        String
+  ownerId     Int
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId])
+}
+
+model Relationship {
+  id      Int    @id @default(autoincrement())
+  subjectId Int
+  objectId  Int
+  type    String
+  meta    Json?
+  subject User @relation("subjectRel", fields: [subjectId], references: [id], onDelete: Cascade)
+  object  User @relation("objectRel", fields: [objectId], references: [id], onDelete: Cascade)
+  @@unique([subjectId, objectId, type])
+  @@index([subjectId, objectId, type])
+  @@index([subjectId])
+  @@index([objectId])
+}
